@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyra — Web Designer &amp; Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0806;
+    --bg-panel: #120e0a;
+    --bg-raised: #191309;
+    --hair: rgba(201,169,97,0.16);
+    --gold: #c9a961;
+    --gold-bright: #eccc7a;
+    --gold-dim: #6e5c34;
+    --ink: #f3ede0;
+    --ink-dim: #a99d87;
+    --ink-faint: #6b6255;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Jost',sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+    cursor:default;
+  }
+  ::selection{background:var(--gold);color:#0a0806;}
+
+  .serif{font-family:'Cormorant Garamond',serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  a{color:inherit;text-decoration:none;}
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:9px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:4px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important;}
+  }
+
+  /* ---------- background canvas ---------- */
+  #dust{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.7;}
+
+  /* ---------- floating glow orbs (always animating) ---------- */
+  .orb{
+    position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+    filter:blur(70px);
+  }
+  .orb1{
+    width:420px;height:420px;top:-100px;left:-80px;
+    background:radial-gradient(circle, rgba(201,169,97,0.28), transparent 70%);
+    animation:orbFloat1 16s ease-in-out infinite;
+  }
+  .orb2{
+    width:520px;height:520px;top:40%;right:-160px;
+    background:radial-gradient(circle, rgba(236,204,122,0.18), transparent 70%);
+    animation:orbFloat2 20s ease-in-out infinite;
+  }
+  .orb3{
+    width:360px;height:360px;bottom:-120px;left:30%;
+    background:radial-gradient(circle, rgba(201,169,97,0.22), transparent 70%);
+    animation:orbFloat3 18s ease-in-out infinite;
+  }
+  @keyframes orbFloat1{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(60px,80px) scale(1.15);}
+  }
+  @keyframes orbFloat2{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(-70px,-40px) scale(1.1);}
+  }
+  @keyframes orbFloat3{
+    0%,100%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(40px,-60px) scale(1.2);}
+  }
+
+  .grain{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity:0.4;
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:26px 6vw;
+    background:linear-gradient(to bottom, rgba(10,8,6,0.9), rgba(10,8,6,0));
+    backdrop-filter:blur(2px);
+  }
+  .brand{
+    font-family:'Cormorant Garamond',serif;
+    font-size:24px;letter-spacing:0.12em;font-weight:600;color:var(--ink);
+  }
+  .brand span{
+    color:var(--gold);
+    display:inline-block;
+    animation:blinkDot 2s ease-in-out infinite;
+  }
+  @keyframes blinkDot{0%,100%{opacity:1;}50%{opacity:0.25;}}
+  .navlinks{display:flex;gap:44px;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-dim);}
+  .navlinks a{position:relative;padding-bottom:4px;transition:color .3s;}
+  .navlinks a::after{
+    content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--gold);
+    transition:width .35s ease;
+  }
+  .navlinks a:hover{color:var(--gold-bright);}
+  .navlinks a:hover::after{width:100%;}
+  @media (max-width:760px){ .navlinks{display:none;} }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;z-index:2;
+    min-height:100svh;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:0 6vw;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.3em;
+    color:var(--gold);text-transform:uppercase;margin-bottom:22px;
+    opacity:0;animation:fadeUp .9s .2s ease forwards;
+    display:flex;align-items:center;gap:14px;
+  }
+  .eyebrow::before{content:'';width:34px;height:1px;background:var(--gold);}
+
+  .hero h1{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:500;
+    font-size:clamp(58px,10vw,150px);
+    line-height:0.92;
+    letter-spacing:0.005em;
+    color:var(--ink);
+  }
+  .hero h1 .line{overflow:hidden;display:block;}
+  .hero h1 .line span{
+    display:inline-block;
+    transform:translateY(110%);
+    animation:riseIn 1s cubic-bezier(.19,1,.22,1) forwards;
+  }
+  .hero h1 .line:nth-child(1) span{animation-delay:.25s;}
+  .hero h1 .line:nth-child(2) span{
+    animation-delay:.4s;font-style:italic;
+    background:linear-gradient(100deg, var(--gold-dim) 0%, var(--gold-bright) 25%, var(--gold) 50%, var(--gold-bright) 75%, var(--gold-dim) 100%);
+    background-size:250% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:riseIn 1s cubic-bezier(.19,1,.22,1) forwards, shimmer 5s linear infinite 1.4s;
+  }
+  @keyframes shimmer{0%{background-position:0% 0%;}100%{background-position:250% 0%;}}
+
+  @keyframes riseIn{to{transform:translateY(0);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  .hero p.tag{
+    max-width:520px;margin-top:30px;
+    font-size:17px;line-height:1.7;color:var(--ink-dim);font-weight:300;
+    opacity:0;animation:fadeUp .9s .8s ease forwards;
+  }
+  .hero-cta{
+    margin-top:40px;display:flex;gap:20px;align-items:center;
+    opacity:0;animation:fadeUp .9s 1s ease forwards;
+  }
+  .btn{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+    padding:16px 30px;border:1px solid var(--gold-dim);color:var(--gold-bright);
+    position:relative;overflow:hidden;transition:border-color .3s, color .3s;
+  }
+  .btn span{position:relative;z-index:2;}
+  .btn::before{
+    content:'';position:absolute;inset:0;background:var(--gold);
+    transform:translateX(-101%);transition:transform .4s cubic-bezier(.65,0,.35,1);z-index:1;
+  }
+  .btn:hover{color:#0a0806;border-color:var(--gold);}
+  .btn:hover::before{transform:translateX(0);}
+  .btn{animation:glowPulse 3s ease-in-out infinite;}
+  @keyframes glowPulse{
+    0%,100%{box-shadow:0 0 0px rgba(201,169,97,0);}
+    50%{box-shadow:0 0 18px rgba(201,169,97,0.35);}
+  }
+  .btn-ghost{color:var(--ink-dim);border:1px solid transparent;padding:16px 6px;}
+  .btn-ghost:hover{color:var(--gold-bright);}
+  .btn-ghost::before{display:none;}
+
+  .scrolldown{
+    position:absolute;bottom:44px;left:6vw;
+    display:flex;align-items:center;gap:12px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--ink-faint);
+    opacity:0;animation:fadeUp .9s 1.3s ease forwards;
+  }
+  .scrolldown i{
+    width:1px;height:38px;background:linear-gradient(var(--gold),transparent);
+    display:block;animation:stretch 2.2s ease-in-out infinite;
+  }
+  @keyframes stretch{0%,100%{transform:scaleY(1);opacity:.5;}50%{transform:scaleY(1.4);opacity:1;}}
+
+  /* ---------- marquee ---------- */
+  .marquee-wrap{
+    position:relative;z-index:2;
+    border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);
+    padding:16px 0;background:var(--bg-panel);overflow:hidden;white-space:nowrap;
+  }
+  .marquee{display:inline-block;animation:scroll 26s linear infinite;}
+  .marquee span{
+    font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;
+    color:var(--ink-faint);padding:0 28px;letter-spacing:0.02em;
+  }
+  .marquee span.gold{color:var(--gold);font-style:normal;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.2em;vertical-align:middle;}
+  @keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+  /* ---------- section shell ---------- */
+  section{position:relative;z-index:2;padding:150px 6vw;}
+  .head-row{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:40px;
+    margin-bottom:80px;flex-wrap:wrap;
+  }
+  .head-row .num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:0.2em;margin-bottom:18px;display:block;}
+  .head-row h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(38px,5vw,64px);}
+  .head-row h2 em{color:var(--gold);font-style:italic;}
+  .head-row p{max-width:340px;color:var(--ink-dim);font-size:15px;line-height:1.7;}
+
+  .reveal{opacity:0;transform:translateY(36px);transition:opacity .9s cubic-bezier(.19,1,.22,1), transform .9s cubic-bezier(.19,1,.22,1);}
+  .reveal.in{opacity:1;transform:translateY(0);}
+
+  /* ---------- work grid ---------- */
+  .work-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:44px;}
+  @media (max-width:900px){.work-grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--bg-panel);
+    border:1px solid var(--hair);
+    perspective:1200px;
+    animation:cardFloat 6s ease-in-out infinite;
+  }
+  .card:nth-child(2){animation-delay:-1.5s;}
+  .card:nth-child(3){animation-delay:-3s;}
+  .card:nth-child(4){animation-delay:-4.5s;}
+  @keyframes cardFloat{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+  }
+  .card-inner{
+    transform-style:preserve-3d;
+    transition:transform .25s ease;
+  }
+  .preview{
+    position:relative;width:100%;overflow:hidden;
+    background:#050403;
+    border-bottom:1px solid var(--hair);
+    transform:translateZ(20px);
+  }
+  .preview iframe{
+    width:1400px;height:900px;
+    transform-origin:top left;
+    border:none;pointer-events:none;
+    display:block;
+  }
+  .preview::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(to top, rgba(10,8,6,0.55), transparent 40%);
+    opacity:0;transition:opacity .35s ease;
+  }
+  .card:hover .preview::after{opacity:1;}
+  .preview .visit{
+    position:absolute;bottom:16px;right:18px;z-index:5;
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;
+    color:var(--gold-bright);
+    display:flex;align-items:center;gap:8px;
+    opacity:0;transform:translateY(8px);transition:all .35s ease;
+  }
+  .card:hover .preview .visit{opacity:1;transform:translateY(0);}
+
+  .card-body{padding:28px 30px 32px;transform:translateZ(10px);}
+  .card-body .tagline{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:10px;
+  }
+  .card-body h3{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;margin-bottom:10px;}
+  .card-body p{color:var(--ink-dim);font-size:14px;line-height:1.65;margin-bottom:18px;}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;}
+  .tags span{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
+    padding:6px 11px;border:1px solid var(--hair);color:var(--ink-faint);
+  }
+
+  /* ---------- services ---------- */
+  .services{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair);}
+  @media (max-width:860px){.services{grid-template-columns:1fr;}}
+  .service{background:var(--bg);padding:48px 38px;transition:background .4s ease;}
+  .service:hover{background:var(--bg-panel);}
+  .service .n{font-family:'JetBrains Mono',monospace;color:var(--gold-dim);font-size:13px;margin-bottom:26px;display:block;}
+  .service:hover .n{color:var(--gold);}
+  .service h4{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;margin-bottom:14px;}
+  .service p{color:var(--ink-dim);font-size:14px;line-height:1.7;}
+
+  /* ---------- about ---------- */
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:80px;align-items:center;}
+  @media (max-width:860px){.about-grid{grid-template-columns:1fr;gap:44px;}}
+  .about-visual{
+    position:relative;aspect-ratio:4/5;border:1px solid var(--hair);
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 30% 20%, rgba(201,169,97,0.10), transparent 60%);
+  }
+  .about-visual .initial{
+    font-family:'Cormorant Garamond',serif;font-size:220px;font-style:italic;color:transparent;
+    -webkit-text-stroke:1px var(--gold-dim);
+  }
+  .about-visual .frame-corner{position:absolute;width:26px;height:26px;border-color:var(--gold);}
+  .about-visual .tl{top:16px;left:16px;border-top:1px solid var(--gold);border-left:1px solid var(--gold);animation:cornerPulse 3s ease-in-out infinite;}
+  .about-visual .br{bottom:16px;right:16px;border-bottom:1px solid var(--gold);border-right:1px solid var(--gold);animation:cornerPulse 3s ease-in-out infinite 1.5s;}
+  @keyframes cornerPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+  .about-visual .initial{animation:initialGlow 4s ease-in-out infinite;}
+  @keyframes initialGlow{0%,100%{-webkit-text-stroke:1px var(--gold-dim);}50%{-webkit-text-stroke:1.5px var(--gold);}}
+
+  .about-copy p{font-size:17px;line-height:1.85;color:var(--ink-dim);margin-bottom:22px;font-weight:300;}
+  .about-copy strong{color:var(--ink);font-weight:500;}
+  .stats{display:flex;gap:52px;margin-top:44px;}
+  .stat b{font-family:'Cormorant Garamond',serif;font-size:44px;color:var(--gold);display:block;font-weight:600;}
+  .stat span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);letter-spacing:0.1em;text-transform:uppercase;}
+
+  /* ---------- contact ---------- */
+  .contact{text-align:center;}
+  .contact .head-row{justify-content:center;text-align:center;flex-direction:column;align-items:center;}
+  .contact .head-row p{max-width:460px;}
+  .big-link{
+    font-family:'Cormorant Garamond',serif;font-size:clamp(34px,7vw,88px);
+    color:var(--ink);display:inline-block;margin:20px 0 46px;position:relative;
+    transition:color .4s ease;
+  }
+  .big-link:hover{color:var(--gold);}
+  .big-link::after{
+    content:'';position:absolute;left:0;bottom:2px;width:100%;height:1px;background:var(--gold-dim);
+  }
+  .social-row{display:flex;justify-content:center;gap:30px;margin-top:10px;}
+  .social-row a{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+    color:var(--ink-dim);padding-bottom:6px;border-bottom:1px solid transparent;transition:all .3s ease;
+  }
+  .social-row a:hover{color:var(--gold-bright);border-color:var(--gold);}
+
+  footer{
+    position:relative;z-index:2;
+    padding:34px 6vw;border-top:1px solid var(--hair);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);letter-spacing:0.08em;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="dust"></canvas>
+<div class="grain"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<nav>
+  <div class="brand">LYRA<span>.</span></div>
+  <div class="navlinks">
+    <a href="#work">Work</a>
+    <a href="#services">Services</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="eyebrow">Web Designer &amp; Developer</div>
+  <h1>
+    <span class="line"><span>Websites that</span></span>
+    <span class="line"><span>feel like luxury.</span></span>
+  </h1>
+  <p class="tag">I design and build fast, elegant, animated websites for hotels, restaurants and growing businesses — crafted to turn visitors into guests and guests into bookings.</p>
+  <div class="hero-cta">
+    <a href="#work" class="btn"><span>View My Work</span></a>
+    <a href="#contact" class="btn btn-ghost">Let's Talk →</a>
+  </div>
+  <div class="scrolldown"><i></i>SCROLL</div>
+</header>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee">
+    <span class="gold">●</span><span>Web Design</span>
+    <span class="gold">●</span><span>Hotel &amp; Restaurant Sites</span>
+    <span class="gold">●</span><span>Motion &amp; Interaction</span>
+    <span class="gold">●</span><span>Custom Development</span>
+    <span class="gold">●</span><span>Web Design</span>
+    <span class="gold">●</span><span>Hotel &amp; Restaurant Sites</span>
+    <span class="gold">●</span><span>Motion &amp; Interaction</span>
+    <span class="gold">●</span><span>Custom Development</span>
+  </div>
+</div>
+
+<!-- WORK -->
+<section id="work">
+  <div class="head-row reveal">
+    <div>
+      <span class="num">01 — Selected Work</span>
+      <h2>Recent <em>projects</em></h2>
+    </div>
+    <p>Live, working websites built for real hospitality clients — each preview below is the actual site, not a mockup. Click any card to open it.</p>
+  </div>
+
+  <div class="work-grid">
+
+    <div class="card reveal" data-tilt data-href="in-canal-restaurant.html">
+      <div class="card-inner">
+        <div class="preview" style="aspect-ratio:1400/900;">
+          <iframe src="in-canal-restaurant.html" title="IN Canal Restaurant preview" scrolling="no" tabindex="-1"></iframe>
+          <span class="visit">Visit Site →</span>
+        </div>
+        <div class="card-body">
+          <span class="tagline">Restaurant · Faisalabad</span>
+          <h3>IN Canal Restaurant</h3>
+          <p>A warm, appetite-driven site for a Canal Road dining spot — built to showcase the menu and set the mood before guests even arrive.</p>
+          <div class="tags"><span>Menu Design</span><span>Responsive</span><span>Booking CTA</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal" data-tilt data-href="the-elet-business-hotel.html">
+      <div class="card-inner">
+        <div class="preview" style="aspect-ratio:1400/900;">
+          <iframe src="the-elet-business-hotel.html" title="The Elet Business Hotel preview" scrolling="no" tabindex="-1"></iframe>
+          <span class="visit">Visit Site →</span>
+        </div>
+        <div class="card-body">
+          <span class="tagline">Hotel · Karachi</span>
+          <h3>The Elet Business Hotel</h3>
+          <p>A clean, corporate-toned hotel website aimed at business travellers — clear rates, amenities and a frictionless enquiry flow.</p>
+          <div class="tags"><span>Business Hotel</span><span>Rooms &amp; Rates</span><span>Enquiry Form</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal" data-tilt data-href="hotel-golden-inn-v2.html">
+      <div class="card-inner">
+        <div class="preview" style="aspect-ratio:1400/900;">
+          <iframe src="hotel-golden-inn-v2.html" title="Hotel Golden Inn v2 preview" scrolling="no" tabindex="-1"></iframe>
+          <span class="visit">Visit Site →</span>
+        </div>
+        <div class="card-body">
+          <span class="tagline">Hotel · Gulshan-e-Iqbal, Karachi</span>
+          <h3>Hotel Golden Inn — v2</h3>
+          <p>The standard build for Golden Inn: gallery, room types and location — a solid, professional presence for a neighbourhood hotel.</p>
+          <div class="tags"><span>Gallery</span><span>Location Map</span><span>Standard Build</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal" data-tilt data-href="hotel-golden-inn-pro.html">
+      <div class="card-inner">
+        <div class="preview" style="aspect-ratio:1400/900;">
+          <iframe src="hotel-golden-inn-pro.html" title="Hotel Golden Inn Pro preview" scrolling="no" tabindex="-1"></iframe>
+          <span class="visit">Visit Site →</span>
+        </div>
+        <div class="card-body">
+          <span class="tagline">Hotel · Gulshan-e-Iqbal, Karachi</span>
+          <h3>Hotel Golden Inn — Pro</h3>
+          <p>The upgraded Pro version for the same client: richer animation, refined visuals and a more premium first impression.</p>
+          <div class="tags"><span>Upgrade</span><span>Motion Design</span><span>Premium Tier</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="head-row reveal">
+    <div>
+      <span class="num">02 — What I Offer</span>
+      <h2>Built <em>end to end</em></h2>
+    </div>
+    <p>From first sketch to a site that's live and taking bookings.</p>
+  </div>
+  <div class="services reveal">
+    <div class="service">
+      <span class="n">Design</span>
+      <h4>Visual Identity</h4>
+      <p>A distinct look for your business — colour, type and layout chosen for your brand, not a template.</p>
+    </div>
+    <div class="service">
+      <span class="n">Build</span>
+      <h4>Fast, Animated Sites</h4>
+      <p>Smooth scroll reveals, subtle motion and responsive layouts that feel premium on every device.</p>
+    </div>
+    <div class="service">
+      <span class="n">Launch</span>
+      <h4>Ready for Guests</h4>
+      <p>Booking forms, WhatsApp links and clear calls to action so visitors turn into customers.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-visual reveal">
+      <span class="initial">L</span>
+      <span class="frame-corner tl"></span>
+      <span class="frame-corner br"></span>
+    </div>
+    <div class="about-copy reveal">
+      <span class="num" style="display:block;margin-bottom:20px;">03 — About</span>
+      <p><strong>Hi, I'm Lyra</strong> — a web designer and developer focused on the hospitality world. I build websites for hotels and restaurants that don't just look good, they make people want to walk in the door.</p>
+      <p>Every project starts with the business itself — its menu, its rooms, its atmosphere — and becomes a site that carries that feeling online, with clean design and just enough motion to feel alive.</p>
+      <div class="stats">
+        <div class="stat"><b>4+</b><span>Sites Delivered</span></div>
+        <div class="stat"><b>100%</b><span>Custom Built</span></div>
+        <div class="stat"><b>2</b><span>Cities Served</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact">
+  <div class="head-row reveal">
+    <span class="num">04 — Get In Touch</span>
+    <h2>Let's build <em>your</em> site</h2>
+    <p>Have a hotel, restaurant or business that needs a website? I'd love to hear about it.</p>
+  </div>
+  <a href="mailto:avalyra351@gmail.com" class="big-link reveal">avalyra351@gmail.com</a>
+  <div class="social-row reveal">
+    <a href="https://www.facebook.com/profile.php?id=61586606595957" target="_blank" rel="noopener">Facebook →</a>
+    <a href="https://www.instagram.com/lyra_ava_784/?hl=en" target="_blank" rel="noopener">Instagram →</a>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 Lyra. All rights reserved.</span>
+  <span>Designed &amp; built with care.</span>
+</footer>
+
+<script>
+// ---------- reveal on scroll ----------
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+},{threshold:0.15});
+revealEls.forEach(el=>io.observe(el));
+
+// ---------- iframe scaling ----------
+function scaleFrames(){
+  document.querySelectorAll('.preview').forEach(wrap=>{
+    const iframe = wrap.querySelector('iframe');
+    if(!iframe) return;
+    const w = wrap.clientWidth;
+    const scale = w/1400;
+    iframe.style.transform = 'scale('+scale+')';
+    wrap.style.height = (900*scale)+'px';
+  });
+}
+window.addEventListener('load', scaleFrames);
+window.addEventListener('resize', scaleFrames);
+setTimeout(scaleFrames, 300);
+setTimeout(scaleFrames, 1000);
+
+// ---------- card click-through ----------
+document.querySelectorAll('.card[data-href]').forEach(card=>{
+  card.style.cursor='pointer';
+  card.addEventListener('click', ()=>{
+    window.open(card.getAttribute('data-href'), '_blank');
+  });
+});
+
+// ---------- 3D tilt ----------
+document.querySelectorAll('[data-tilt]').forEach(card=>{
+  const inner = card.querySelector('.card-inner');
+  card.addEventListener('mousemove', (e)=>{
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left)/r.width - 0.5;
+    const y = (e.clientY - r.top)/r.height - 0.5;
+    inner.style.transform = `rotateY(${x*8}deg) rotateX(${-y*8}deg)`;
+  });
+  card.addEventListener('mouseleave', ()=>{
+    inner.style.transform = 'rotateY(0deg) rotateX(0deg)';
+  });
+});
+
+// ---------- gold dust canvas ----------
+const canvas = document.getElementById('dust');
+const ctx = canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight * 2.2;
+}
+function initParticles(){
+  particles = [];
+  const count = Math.min(90, Math.floor(W/16));
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: Math.random()*1.6+0.4,
+      s: Math.random()*0.3+0.05,
+      o: Math.random()*0.5+0.1,
+      drift: Math.random()*0.4-0.2
+    });
+  }
+}
+resize();initParticles();
+window.addEventListener('resize', ()=>{resize();initParticles();});
+
+function animateDust(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.y -= p.s;
+    p.x += p.drift*0.2;
+    if(p.y < -10){ p.y = H+10; p.x = Math.random()*W; }
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(201,169,97,${p.o})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animateDust);
+}
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  animateDust();
+}
+</script>
+
+</body>
+</html>
